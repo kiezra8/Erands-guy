@@ -19,12 +19,6 @@ export default function Navbar() {
                 <span className="nav-logo-text">Erands<em>Guy</em></span>
             </Link>
 
-            <ul className="nav-links">
-                <li><a href="#order">Order</a></li>
-                <li><a href="#track">Track</a></li>
-                <li><a href="#how">How it works</a></li>
-                <li><a href="#features">Features</a></li>
-            </ul>
 
             <div className="nav-right">
                 <button className="btn btn-ghost btn-sm" onClick={() => navigate('/rider')}>
