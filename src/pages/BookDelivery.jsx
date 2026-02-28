@@ -1,266 +1,264 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Navbar from '../components/Navbar'
-import Sidebar from '../components/Sidebar'
 import LiveMap from '../components/LiveMap'
 import '../App.css'
 
-const KAMPALA = { lat: -0.3476, lng: 32.5825 }
+const KAMPALA = [-0.3476, 32.5825]
 
-// Estimate price
-function estimatePrice(vehicle, distance) {
-    if (!distance) return 0
-    const base = vehicle === 'boda' ? 3000 : 10000
-    const perKm = vehicle === 'boda' ? 500 : 1500
-    return base + Math.round(distance * perKm)
-}
-
-const POPULAR_PLACES = [
+const PLACES = [
     'Nakasero Market', 'Owino Market', 'Garden City Mall', 'Acacia Mall', 'Ntinda',
     'Bukoto', 'Kololo', 'Muyenga', 'Kisaasi', 'Wandegeya', 'Makerere University',
     'Entebbe Road', 'Jinja Road', 'Old Kampala', 'Katwe',
 ]
 
+function estPrice(vehicle, km) {
+    const base = vehicle === 'boda' ? 3000 : 10000
+    const rate = vehicle === 'boda' ? 500 : 1500
+    return base + Math.round(km * rate)
+}
+
+const VEHICLE_OPTS = [
+    { id: 'boda', emoji: '🏍️', label: 'Boda Boda', sub: 'UGX 5.5K' },
+    { id: 'car', emoji: '🚗', label: 'Car', sub: 'UGX 16K' },
+]
+
+const PARCEL_TYPES = [
+    { val: 'documents', label: '📄 Documents' },
+    { val: 'food', label: '🍱 Food / Groceries' },
+    { val: 'electronics', label: '💻 Electronics' },
+    { val: 'clothing', label: '👕 Clothing' },
+    { val: 'medicine', label: '💊 Medicine' },
+    { val: 'other', label: '📦 Other' },
+]
+
 export default function BookDelivery() {
     const navigate = useNavigate()
+    const [step, setStep] = useState(1)
     const [vehicle, setVehicle] = useState('boda')
     const [pickup, setPickup] = useState('')
     const [dropoff, setDropoff] = useState('')
-    const [parcelType, setParcelType] = useState('documents')
-    const [mapPickup, setMapPickup] = useState([KAMPALA.lat + 0.01, KAMPALA.lng - 0.01])
-    const [mapDropoff, setMapDropoff] = useState([KAMPALA.lat - 0.01, KAMPALA.lng + 0.015])
-    const [step, setStep] = useState(1) // 1 = form, 2 = confirm
+    const [parcel, setParcel] = useState('documents')
+    const [note, setNote] = useState('')
+    const [pickupPos] = useState([KAMPALA[0] + 0.01, KAMPALA[1] - 0.01])
+    const [dropoffPos] = useState([KAMPALA[0] - 0.01, KAMPALA[1] + 0.015])
 
-    const distance = 4.2 // simulated
-    const price = estimatePrice(vehicle, distance)
-    const formatted = `UGX ${price.toLocaleString()}`
-
-    const handleBooking = (e) => {
-        e.preventDefault()
-        if (step === 1) { setStep(2); return }
-        navigate('/track/eg-new')
-    }
+    const KM = 4.2
+    const price = estPrice(vehicle, KM)
+    const priceStr = `UGX ${price.toLocaleString()}`
 
     return (
-        <div>
-            <Navbar />
-            <div className="dashboard">
-                <Sidebar role="customer" userName="Sarah K." userRole="Customer" />
-                <main className="main-content">
-                    <div className="page-header">
-                        <div>
-                            <h1>Book a Delivery 📦</h1>
-                            <p>Fill in the details and we'll find you the perfect rider.</p>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="book-shell">
+            {/* Map pane (left) */}
+            <div className="book-map-pane">
+                {/* tiny top-left back */}
+                <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 500 }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => navigate('/customer')} style={{ gap: 6 }}>
+                        ← Back
+                    </button>
+                </div>
+                <LiveMap
+                    center={KAMPALA}
+                    zoom={13}
+                    riderPosition={pickupPos}
+                    customerPosition={dropoffPos}
+                    showRoute
+                    height="100%"
+                />
+                {/* Map legend */}
+                <div style={{
+                    position: 'absolute', bottom: 20, left: 20,
+                    display: 'flex', gap: 8, zIndex: 200
+                }}>
+                    <div style={{
+                        background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(12px)',
+                        border: '1px solid var(--border-strong)', borderRadius: 'var(--r-xl)',
+                        padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', fontWeight: 700
+                    }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand)' }} />
+                        Pickup point
+                    </div>
+                    <div style={{
+                        background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(12px)',
+                        border: '1px solid var(--border-strong)', borderRadius: 'var(--r-xl)',
+                        padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', fontWeight: 700
+                    }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--red)' }} />
+                        Dropoff
+                    </div>
+                </div>
+            </div>
+
+            {/* Form pane (right) */}
+            <div className="book-form-pane">
+                <div className="book-form-header">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <h1>Book delivery</h1>
+                        {/* Step dots */}
+                        <div className="step-dots">
                             {[1, 2].map(s => (
-                                <div key={s} style={{
-                                    width: 32, height: 32, borderRadius: '50%',
-                                    background: step >= s ? 'var(--primary)' : 'var(--bg-card)',
-                                    border: step >= s ? 'none' : '1px solid var(--bg-glass-border)',
-                                    color: step >= s ? '#000' : 'var(--text-muted)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontWeight: 700, fontSize: '0.85rem'
-                                }}>{s}</div>
+                                <div key={s} className={`step-dot ${step === s ? 'active' : (step > s ? 'active' : '')}`} />
                             ))}
                         </div>
                     </div>
+                    <p>{step === 1 ? 'Enter route & parcel details' : 'Review and confirm your order'}</p>
+                </div>
 
-                    <div className="book-layout">
-                        {/* Form */}
-                        <div className="book-form-panel">
-                            {step === 1 ? (
-                                <>
-                                    <h2>Delivery Details</h2>
-                                    <p>Tell us where to pick up and where to deliver</p>
-
-                                    {/* Vehicle selector */}
-                                    <div className="form-group">
-                                        <label>Vehicle Type</label>
-                                        <div className="vehicle-selector">
-                                            <button
-                                                type="button"
-                                                className={`vehicle-option ${vehicle === 'boda' ? 'selected' : ''}`}
-                                                onClick={() => setVehicle('boda')}
-                                                id="vehicle-boda"
-                                            >
-                                                <span className="vo-emoji">🏍️</span>
-                                                <div className="vo-name">Boda Boda</div>
-                                                <div className="vo-price">From UGX 3,000</div>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`vehicle-option ${vehicle === 'car' ? 'selected' : ''}`}
-                                                onClick={() => setVehicle('car')}
-                                                id="vehicle-car"
-                                            >
-                                                <span className="vo-emoji">🚗</span>
-                                                <div className="vo-name">Courier Car</div>
-                                                <div className="vo-price">From UGX 10,000</div>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <form onSubmit={handleBooking}>
-                                        <div className="form-group">
-                                            <label>📍 Pickup Location</label>
-                                            <input
-                                                className="input"
-                                                id="pickup-input"
-                                                placeholder="e.g. Nakasero Market, Kampala"
-                                                value={pickup}
-                                                onChange={e => setPickup(e.target.value)}
-                                                list="places-list"
-                                                required
-                                            />
-                                            <datalist id="places-list">
-                                                {POPULAR_PLACES.map(p => <option key={p} value={p} />)}
-                                            </datalist>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>🏁 Drop-off Location</label>
-                                            <input
-                                                className="input"
-                                                id="dropoff-input"
-                                                placeholder="e.g. Ntinda, Kampala"
-                                                value={dropoff}
-                                                onChange={e => setDropoff(e.target.value)}
-                                                list="places-list"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>📦 Parcel Type</label>
-                                            <select
-                                                className="input"
-                                                id="parcel-type"
-                                                value={parcelType}
-                                                onChange={e => setParcelType(e.target.value)}
-                                            >
-                                                <option value="documents">📄 Documents</option>
-                                                <option value="food">🍱 Food / Groceries</option>
-                                                <option value="electronics">💻 Electronics</option>
-                                                <option value="clothing">👕 Clothing</option>
-                                                <option value="medicine">💊 Medicine</option>
-                                                <option value="other">📦 Other</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>📝 Special Instructions (optional)</label>
-                                            <input
-                                                className="input"
-                                                id="instructions-input"
-                                                placeholder="Handle with care, call on arrival..."
-                                            />
-                                        </div>
-
-                                        {/* Price estimate */}
-                                        <div className="price-estimate">
-                                            <div>
-                                                <div className="est-label">Estimated Price</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                                                    {distance} km · {vehicle === 'boda' ? 'Boda Boda' : 'Courier Car'}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <span className="est-price">{formatted}</span>
-                                                <span className="est-currency">UGX</span>
-                                            </div>
-                                        </div>
-
+                <div className="book-form-body">
+                    {step === 1 ? (
+                        <>
+                            {/* Vehicle selector */}
+                            <div className="form-group">
+                                <label className="form-label">Vehicle</label>
+                                <div className="vehicle-chips">
+                                    {VEHICLE_OPTS.map(v => (
                                         <button
-                                            type="submit"
-                                            className="btn btn-primary"
-                                            style={{ width: '100%', justifyContent: 'center', fontSize: '1rem', padding: '16px' }}
-                                            id="continue-btn"
+                                            key={v.id}
+                                            className={`vehicle-chip ${vehicle === v.id ? 'selected' : ''}`}
+                                            onClick={() => setVehicle(v.id)}
+                                            type="button"
+                                            id={`vehicle-${v.id}`}
                                         >
-                                            Continue to Confirm →
+                                            <span className="vc-emoji">{v.emoji}</span>
+                                            <span className="vc-name">{v.label}</span>
+                                            <span className="vc-price">{v.sub}</span>
                                         </button>
-                                    </form>
-                                </>
-                            ) : (
-                                <>
-                                    <h2>Confirm Booking</h2>
-                                    <p>Review your delivery details before placing the order</p>
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
-                                        {[
-                                            { label: 'Vehicle', value: vehicle === 'boda' ? '🏍️ Boda Boda' : '🚗 Courier Car' },
-                                            { label: 'Pickup', value: pickup || 'Nakasero Market' },
-                                            { label: 'Drop-off', value: dropoff || 'Ntinda Village' },
-                                            { label: 'Parcel', value: parcelType },
-                                            { label: 'Distance', value: `${distance} km` },
-                                            { label: 'Payment', value: 'MTN Mobile Money' },
-                                        ].map(item => (
-                                            <div key={item.label} style={{
-                                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                                padding: '12px 0', borderBottom: '1px solid var(--bg-glass-border)',
-                                                fontSize: '0.92rem'
-                                            }}>
-                                                <span style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
-                                                <span style={{ fontWeight: 600 }}>{item.value}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="price-estimate" style={{ marginBottom: 24 }}>
-                                        <div>
-                                            <div className="est-label">Total to Pay</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>Inclusive of all fees</div>
-                                        </div>
-                                        <span className="est-price">{formatted}</span>
-                                    </div>
-
-                                    <div style={{ display: 'flex', gap: 12 }}>
-                                        <button
-                                            className="btn btn-secondary"
-                                            style={{ flex: 1, justifyContent: 'center', padding: '14px' }}
-                                            onClick={() => setStep(1)}
-                                            id="back-btn"
-                                        >
-                                            ← Edit
-                                        </button>
-                                        <button
-                                            className="btn btn-primary"
-                                            style={{ flex: 2, justifyContent: 'center', padding: '14px', fontSize: '1rem' }}
-                                            onClick={handleBooking}
-                                            id="confirm-btn"
-                                        >
-                                            ✓ Confirm & Pay
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Map */}
-                        <div className="book-map-panel">
-                            <div className="map-panel-header" style={{ top: 16, left: 16, right: 16, zIndex: 500, display: 'flex', justifyContent: 'space-between', position: 'absolute' }}>
-                                <div className="map-overlay-card">
-                                    🗺️ Click map to set points
+                                    ))}
                                 </div>
                             </div>
-                            <LiveMap
-                                center={[KAMPALA.lat, KAMPALA.lng]}
-                                zoom={13}
-                                riderPosition={mapPickup}
-                                customerPosition={mapDropoff}
-                                showRoute={true}
-                                height="100%"
-                                onMapClick={(latlng) => {
-                                    if (!pickup) {
-                                        setMapPickup([latlng.lat, latlng.lng])
-                                    } else {
-                                        setMapDropoff([latlng.lat, latlng.lng])
-                                    }
-                                }}
-                            />
+
+                            {/* Route stack */}
+                            <div className="form-group">
+                                <label className="form-label">Route</label>
+                                <div className="route-stack">
+                                    <div className="route-input-row">
+                                        <div className="route-dot pickup" />
+                                        <input
+                                            className="route-input"
+                                            id="pickup-input"
+                                            placeholder="Pickup location"
+                                            value={pickup}
+                                            onChange={e => setPickup(e.target.value)}
+                                            list="places-list"
+                                        />
+                                    </div>
+                                    <div className="route-divider" />
+                                    <div className="route-input-row">
+                                        <div className="route-dot dropoff" />
+                                        <input
+                                            className="route-input"
+                                            id="dropoff-input"
+                                            placeholder="Dropoff location"
+                                            value={dropoff}
+                                            onChange={e => setDropoff(e.target.value)}
+                                            list="places-list"
+                                        />
+                                    </div>
+                                </div>
+                                <datalist id="places-list">
+                                    {PLACES.map(p => <option key={p} value={p} />)}
+                                </datalist>
+                            </div>
+
+                            {/* Parcel type */}
+                            <div className="form-group">
+                                <label className="form-label" htmlFor="parcel-type">Parcel type</label>
+                                <select
+                                    className="input"
+                                    id="parcel-type"
+                                    value={parcel}
+                                    onChange={e => setParcel(e.target.value)}
+                                    style={{ appearance: 'none', cursor: 'pointer' }}
+                                >
+                                    {PARCEL_TYPES.map(p => (
+                                        <option key={p.val} value={p.val}>{p.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Note */}
+                            <div className="form-group">
+                                <label className="form-label" htmlFor="note-input">Instructions (optional)</label>
+                                <input
+                                    className="input"
+                                    id="note-input"
+                                    placeholder="E.g. Handle with care, call on arrival"
+                                    value={note}
+                                    onChange={e => setNote(e.target.value)}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        /* Step 2 — confirm */
+                        <div>
+                            {[
+                                { label: 'Vehicle', val: vehicle === 'boda' ? '🏍️ Boda Boda' : '🚗 Courier Car' },
+                                { label: 'Pickup', val: pickup || 'Nakasero Market' },
+                                { label: 'Dropoff', val: dropoff || 'Ntinda Village' },
+                                { label: 'Parcel', val: parcel },
+                                { label: 'Distance', val: `${KM} km` },
+                                { label: 'Payment', val: 'MTN Mobile Money' },
+                            ].map(row => (
+                                <div className="confirm-row" key={row.label}>
+                                    <span className="cr-label">{row.label}</span>
+                                    <span className="cr-val">{row.val}</span>
+                                </div>
+                            ))}
+
+                            <div style={{
+                                background: 'var(--brand-dim)', border: '1px solid rgba(6,193,103,0.25)',
+                                borderRadius: 'var(--r-lg)', padding: '16px 20px', marginTop: 20,
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                            }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-2)', fontWeight: 600 }}>Total to pay</span>
+                                <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--brand)' }}>{priceStr}</span>
+                            </div>
                         </div>
+                    )}
+                </div>
+
+                {/* Estimate bar always visible */}
+                <div style={{ padding: '0 24px' }}>
+                    <div className="estimate-card">
+                        <div className="estimate-left">
+                            <div className="est-label">Estimate</div>
+                            <div className="est-dist">{KM} km · {vehicle === 'boda' ? 'Boda Boda' : 'Car'}</div>
+                        </div>
+                        <div className="estimate-price">{priceStr}</div>
                     </div>
-                </main>
+                </div>
+
+                {/* Footer */}
+                <div className="book-form-footer">
+                    {step === 1 ? (
+                        <button
+                            className="btn btn-brand"
+                            id="continue-btn"
+                            style={{ width: '100%', padding: '16px', fontSize: '1rem' }}
+                            onClick={() => setStep(2)}
+                        >
+                            Continue →
+                        </button>
+                    ) : (
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button
+                                className="btn btn-ghost"
+                                id="back-btn"
+                                style={{ flex: 1, padding: '14px', justifyContent: 'center' }}
+                                onClick={() => setStep(1)}
+                            >
+                                ← Edit
+                            </button>
+                            <button
+                                className="btn btn-brand"
+                                id="confirm-btn"
+                                style={{ flex: 2, padding: '14px', justifyContent: 'center', fontSize: '1rem' }}
+                                onClick={() => navigate('/track/eg-new')}
+                            >
+                                Confirm & pay
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )

@@ -1,167 +1,142 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import LiveMap from '../components/LiveMap'
 import '../App.css'
 
-// Kampala coordinates
-const KAMPALA = { lat: -0.3476, lng: 32.5825 }
+const KAMPALA = [-0.3476, 32.5825]
+const RIDER_POS = [KAMPALA[0] + 0.008, KAMPALA[1] - 0.01]
+const CUSTOMER_POS = [KAMPALA[0] - 0.005, KAMPALA[1] + 0.012]
 
-const MOCK_ORDERS = [
-    { id: 'EG-001', vehicle: '🏍️', from: 'Nakasero Market', to: 'Ntinda', status: 'In Transit', price: 'UGX 5,500', time: '12 min ago', statusColor: '#F59E0B' },
-    { id: 'EG-002', vehicle: '🚗', from: 'Entebbe Road', to: 'Kololo Hill', status: 'Delivered', price: 'UGX 18,000', time: '1 hr ago', statusColor: '#00E5A0' },
-    { id: 'EG-003', vehicle: '🏍️', from: 'Owino Market', to: 'Bukoto', status: 'Delivered', price: 'UGX 4,000', time: 'Yesterday', statusColor: '#00E5A0' },
-    { id: 'EG-004', vehicle: '🚗', from: 'Garden City', to: 'Muyenga', status: 'Cancelled', price: 'UGX 0', time: '2 days ago', statusColor: '#EF4444' },
+const STATS = [
+    { val: '24', label: 'Total deliveries', change: '+3 today' },
+    { val: '1', label: 'Active orders', change: 'In transit' },
+    { val: 'UGX 87K', label: 'Total spent', change: 'This month' },
+    { val: '4.9 ★', label: 'Avg rider rating', change: 'Excellent' },
+]
+
+const ORDERS = [
+    { id: 'EG-001', icon: '🏍️', route: 'Nakasero Market → Ntinda', status: 'In Transit', price: 'UGX 5,500', time: '12 min ago', color: '#F5A623' },
+    { id: 'EG-002', icon: '🚗', route: 'Entebbe Road → Kololo Hill', status: 'Delivered', price: 'UGX 18,000', time: '1 hr ago', color: '#06C167' },
+    { id: 'EG-003', icon: '🏍️', route: 'Owino Market → Bukoto', status: 'Delivered', price: 'UGX 4,000', time: 'Yesterday', color: '#06C167' },
+    { id: 'EG-004', icon: '🚗', route: 'Garden City → Muyenga', status: 'Cancelled', price: 'UGX 0', time: '2 days ago', color: '#E53935' },
 ]
 
 export default function CustomerDashboard() {
     const navigate = useNavigate()
-    const [activeTab, setActiveTab] = useState('overview')
-
-    // Simulate live rider near Kampala centre
-    const riderPos = [KAMPALA.lat + 0.008, KAMPALA.lng - 0.01]
-    const customerPos = [KAMPALA.lat - 0.005, KAMPALA.lng + 0.012]
+    const [filter, setFilter] = useState('all')
 
     return (
-        <div>
-            <Navbar />
-            <div className="dashboard">
-                <Sidebar role="customer" userName="Sarah K." userRole="Customer" />
-                <main className="main-content">
-                    {/* Header */}
-                    <div className="page-header">
-                        <div>
-                            <h1>Good morning, Sarah 👋</h1>
-                            <p>Here's what's happening with your deliveries today</p>
+        <div className="app-shell">
+            <Sidebar role="customer" userName="Sarah K." userRole="Customer" />
+
+            <div className="app-main">
+                {/* Top bar */}
+                <div className="app-topbar">
+                    <div>
+                        <span className="topbar-title">Good morning, Sarah 👋</span>
+                    </div>
+                    <div className="topbar-right">
+                        <div className="chip chip-green">
+                            <div className="live-dot" />
+                            1 active order
                         </div>
-                        <button className="btn btn-primary" onClick={() => navigate('/book')}>
-                            + New Delivery
+                        <button className="btn btn-brand btn-sm" onClick={() => navigate('/book')}>
+                            + New delivery
                         </button>
                     </div>
+                </div>
+
+                {/* Full-height map in background */}
+                <div className="dashboard-map" style={{ top: 60 }}>
+                    <LiveMap
+                        center={KAMPALA}
+                        zoom={14}
+                        riderPosition={RIDER_POS}
+                        customerPosition={CUSTOMER_POS}
+                        showRoute
+                        height="100%"
+                    />
+                </div>
+
+                {/* Top-right status chip */}
+                <div className="panel-topright" style={{ top: 76 }}>
+                    <div className="live-dot-ring"><div className="live-dot" /></div>
+                    <span>EG-001 · Patrick O. · 8 min</span>
+                </div>
+
+                {/* Left floating panel */}
+                <div className="panel panel-left" style={{ top: 76 }}>
 
                     {/* Stats */}
-                    <div className="stats-row">
-                        <div className="stat-card">
-                            <div className="stat-card-header">
-                                <div className="stat-card-icon icon-green">📦</div>
-                                <span className="badge badge-green" style={{ fontSize: '0.7rem' }}>+12%</span>
+                    <div style={{
+                        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8,
+                    }}>
+                        {STATS.map(s => (
+                            <div key={s.label} style={{
+                                background: 'var(--gray-800)', borderRadius: 'var(--r-lg)',
+                                padding: '14px 14px', border: '1px solid var(--border)'
+                            }}>
+                                <div style={{ fontSize: '1.3rem', fontWeight: 800, lineHeight: 1 }}>{s.val}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-3)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--brand)', fontWeight: 700, marginTop: 4 }}>{s.change}</div>
                             </div>
-                            <h2>24</h2>
-                            <p>Total Deliveries</p>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-card-header">
-                                <div className="stat-card-icon icon-amber">🚀</div>
-                                <span className="badge badge-amber" style={{ fontSize: '0.7rem' }}>Live</span>
-                            </div>
-                            <h2>1</h2>
-                            <p>Active Orders</p>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-card-header">
-                                <div className="stat-card-icon icon-purple">💳</div>
-                            </div>
-                            <h2>UGX 87K</h2>
-                            <p>Total Spent</p>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-card-header">
-                                <div className="stat-card-icon icon-green">⭐</div>
-                            </div>
-                            <h2>4.9</h2>
-                            <p>Avg Rider Rating</p>
-                        </div>
+                        ))}
                     </div>
 
-                    {/* Live Map */}
-                    <div style={{ marginBottom: 28 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                            <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>📍 Live Tracking</h2>
-                            <button
-                                className="btn btn-ghost"
-                                style={{ fontSize: '0.82rem' }}
-                                onClick={() => navigate('/track/eg-001')}
-                            >
-                                Full View →
-                            </button>
-                        </div>
-                        <div className="map-panel">
-                            <div className="map-panel-header">
-                                <div className="map-overlay-card">
-                                    <span className="pulse-dot" />
-                                    EG-001 · In Transit
-                                </div>
-                                <div className="map-overlay-card">
-                                    🏍️ Patrick · 8 min away
-                                </div>
-                            </div>
-                            <LiveMap
-                                center={[KAMPALA.lat, KAMPALA.lng]}
-                                zoom={14}
-                                riderPosition={riderPos}
-                                customerPosition={customerPos}
-                                showRoute={true}
-                                height="430px"
-                            />
-                        </div>
-                    </div>
+                    <div className="divider" />
 
-                    {/* Recent Orders */}
+                    {/* Orders heading + filter */}
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                            <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Recent Orders</h2>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                {['overview', 'in-transit', 'delivered'].map(t => (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <span className="sub-heading">Recent orders</span>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                                {['all', 'active', 'done'].map(f => (
                                     <button
-                                        key={t}
-                                        className={`btn btn-ghost ${activeTab === t ? 'active' : ''}`}
+                                        key={f}
+                                        className="btn btn-ghost"
                                         style={{
-                                            fontSize: '0.78rem', padding: '6px 14px',
-                                            ...(activeTab === t ? { borderColor: 'var(--primary)', color: 'var(--primary)' } : {})
+                                            fontSize: '0.7rem', padding: '4px 10px', borderRadius: 'var(--r-full)',
+                                            ...(filter === f ? { background: 'var(--brand-dim)', color: 'var(--brand)' } : {})
                                         }}
-                                        onClick={() => setActiveTab(t)}
+                                        onClick={() => setFilter(f)}
                                     >
-                                        {t.charAt(0).toUpperCase() + t.slice(1).replace('-', ' ')}
+                                        {f.charAt(0).toUpperCase() + f.slice(1)}
                                     </button>
                                 ))}
                             </div>
                         </div>
-                        <div className="orders-list">
-                            {MOCK_ORDERS.map(order => (
-                                <div
-                                    className="order-item"
-                                    key={order.id}
-                                    onClick={() => navigate('/track/eg-001')}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <div className="order-vehicle-icon">{order.vehicle}</div>
-                                    <div className="order-info">
-                                        <h4>{order.from} → {order.to}</h4>
-                                        <p>Order #{order.id}</p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {ORDERS.map(o => (
+                                <div className="order-row" key={o.id} onClick={() => navigate('/track/eg-001')}>
+                                    <div className="order-icon">{o.icon}</div>
+                                    <div className="order-body">
+                                        <h4>{o.route}</h4>
+                                        <p>#{o.id}</p>
                                     </div>
-                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <span style={{
-                                            background: `${order.statusColor}15`,
-                                            color: order.statusColor,
-                                            border: `1px solid ${order.statusColor}30`,
-                                            borderRadius: '99px',
-                                            padding: '4px 12px',
-                                            fontSize: '0.78rem',
-                                            fontWeight: 600,
-                                        }}>
-                                            {order.status}
-                                        </span>
-                                    </div>
-                                    <div className="order-meta">
-                                        <div className="price">{order.price}</div>
-                                        <div className="time">{order.time}</div>
+                                    <div className="order-right">
+                                        <div className="order-price">{o.price}</div>
+                                        <div style={{
+                                            fontSize: '0.68rem', fontWeight: 700, color: o.color,
+                                            marginTop: 4
+                                        }}>{o.status}</div>
+                                        <div className="order-time">{o.time}</div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                </main>
+
+                    {/* Track full button */}
+                    <button
+                        className="btn btn-brand"
+                        style={{ width: '100%', padding: '14px', fontSize: '0.9rem' }}
+                        onClick={() => navigate('/track/eg-001')}
+                    >
+                        📡 Open live tracker
+                    </button>
+                </div>
             </div>
         </div>
     )

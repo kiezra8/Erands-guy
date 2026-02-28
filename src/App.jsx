@@ -1,22 +1,93 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import {
+    RequireAuth,
+    RequireAdmin,
+    RequireDriver,
+    RedirectIfLoggedIn,
+} from './components/ProtectedRoute'
+
+// Pages
 import LandingPage from './pages/LandingPage'
+import LoginPage from './pages/LoginPage'
+import AdminDashboard from './pages/AdminDashboard'
 import CustomerDashboard from './pages/CustomerDashboard'
 import RiderDashboard from './pages/RiderDashboard'
 import BookDelivery from './pages/BookDelivery'
 import TrackDelivery from './pages/TrackDelivery'
+
 import './index.css'
+import './App.css'
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/customer" element={<CustomerDashboard />} />
-                <Route path="/rider" element={<RiderDashboard />} />
-                <Route path="/book" element={<BookDelivery />} />
-                <Route path="/track/:id" element={<TrackDelivery />} />
-            </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    {/* Public */}
+                    <Route path="/" element={<LandingPage />} />
+
+                    {/* Auth — redirect away if already logged in */}
+                    <Route
+                        path="/login"
+                        element={
+                            <RedirectIfLoggedIn>
+                                <LoginPage />
+                            </RedirectIfLoggedIn>
+                        }
+                    />
+
+                    {/* ── ADMIN ONLY ── israelezrakisakye@gmail.com */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <RequireAdmin>
+                                <AdminDashboard />
+                            </RequireAdmin>
+                        }
+                    />
+
+                    {/* ── CUSTOMER ── any logged-in user who isn't admin/driver */}
+                    <Route
+                        path="/customer"
+                        element={
+                            <RequireAuth>
+                                <CustomerDashboard />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/book"
+                        element={
+                            <RequireAuth>
+                                <BookDelivery />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/track/:id"
+                        element={
+                            <RequireAuth>
+                                <TrackDelivery />
+                            </RequireAuth>
+                        }
+                    />
+
+                    {/* ── DRIVER ONLY ── must have role=driver in Firestore */}
+                    <Route
+                        path="/rider"
+                        element={
+                            <RequireDriver>
+                                <RiderDashboard />
+                            </RequireDriver>
+                        }
+                    />
+
+                    {/* Catch-all */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
     )
 }

@@ -3,43 +3,36 @@ import { Link, useNavigate } from 'react-router-dom'
 import '../App.css'
 
 export default function Navbar() {
-    const [scrolled, setScrolled] = useState(false)
+    const [solid, setSolid] = useState(false)
     const navigate = useNavigate()
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20)
-        window.addEventListener('scroll', handleScroll)
-        return () => window.removeEventListener('scroll', handleScroll)
+        const fn = () => setSolid(window.scrollY > 10)
+        window.addEventListener('scroll', fn)
+        return () => window.removeEventListener('scroll', fn)
     }, [])
 
     return (
-        <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+        <nav className={`navbar ${solid ? 'solid' : ''}`}>
             <Link to="/" className="nav-logo">
-                <div className="nav-logo-icon">⚡</div>
-                <span className="nav-logo-text">Erands <span>Guy</span></span>
+                <div className="nav-logo-mark">E</div>
+                <span className="nav-logo-text">Erands<em>Guy</em></span>
             </Link>
 
             <ul className="nav-links">
-                <li><a href="#how-it-works">How it Works</a></li>
                 <li><a href="#vehicles">Vehicles</a></li>
+                <li><a href="#how">How it works</a></li>
                 <li><a href="#features">Features</a></li>
-                <li><a href="#about">About</a></li>
             </ul>
 
-            <div className="nav-actions">
-                <button className="btn btn-ghost" onClick={() => navigate('/rider')}>
+            <div className="nav-right">
+                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/rider')}>
                     Rider Login
                 </button>
-                <button className="btn btn-primary" onClick={() => navigate('/customer')}>
-                    Get Started
+                <button className="btn btn-brand btn-sm" onClick={() => navigate('/customer')}>
+                    Get started
                 </button>
             </div>
-
-            <button className="nav-hamburger">
-                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M3 12h18M3 6h18M3 18h18" />
-                </svg>
-            </button>
         </nav>
     )
 }

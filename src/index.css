@@ -1,47 +1,11 @@
-/* ===========================
-   ERANDS GUY – GLOBAL STYLES
-   =========================== */
-*, *::before, *::after {
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-:root {
-  /* Brand palette */
-  --primary: #00E5A0;
-  --primary-dark: #00B880;
-  --primary-glow: rgba(0, 229, 160, 0.35);
-  --secondary: #7C3AED;
-  --secondary-dark: #5B21B6;
-  --accent: #F59E0B;
-  --accent-red: #EF4444;
-
-  /* Backgrounds */
-  --bg-base: #080B14;
-  --bg-surface: #0D1120;
-  --bg-card: #111827;
-  --bg-glass: rgba(255,255,255,0.04);
-  --bg-glass-border: rgba(255,255,255,0.08);
-
-  /* Text */
-  --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #4B5563;
-
-  /* Shadows / glows */
-  --glow-green: 0 0 30px rgba(0, 229, 160, 0.25);
-  --glow-purple: 0 0 30px rgba(124, 58, 237, 0.25);
-
-  /* Radii */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
-  --radius-xl: 36px;
-  --radius-full: 9999px;
-
-  /* Transitions */
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
@@ -49,205 +13,27 @@ html {
 }
 
 body {
-  font-family: 'Outfit', 'Space Grotesk', sans-serif;
-  background-color: var(--bg-base);
-  color: var(--text-primary);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a0a0a;
+  color: #ffffff;
   min-height: 100vh;
   overflow-x: hidden;
-  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--primary-dark); border-radius: 99px; }
+a {
+  color: inherit;
+}
 
-/* ---- UTILITIES ---- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  cursor: pointer;
+button {
   font-family: inherit;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: var(--transition);
-  white-space: nowrap;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #000;
-  padding: 14px 32px;
-  border-radius: var(--radius-full);
-  font-size: 1rem;
-  box-shadow: var(--glow-green);
-}
-.btn-primary:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 0 40px rgba(0, 229, 160, 0.45);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--primary);
-  border: 1.5px solid var(--primary);
-  padding: 13px 30px;
-  border-radius: var(--radius-full);
-  font-size: 1rem;
-}
-.btn-secondary:hover {
-  background: var(--primary-glow);
-  transform: translateY(-2px);
-}
-
-.btn-ghost {
-  background: var(--bg-glass);
-  border: 1px solid var(--bg-glass-border);
-  color: var(--text-primary);
-  padding: 10px 22px;
-  border-radius: var(--radius-full);
-  font-size: 0.9rem;
-  backdrop-filter: blur(8px);
-}
-.btn-ghost:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.glass-card {
-  background: var(--bg-glass);
-  border: 1px solid var(--bg-glass-border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: var(--radius-lg);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 5px 14px;
-  border-radius: var(--radius-full);
-}
-
-.badge-green {
-  background: rgba(0, 229, 160, 0.12);
-  color: var(--primary);
-  border: 1px solid rgba(0, 229, 160, 0.25);
-}
-.badge-purple {
-  background: rgba(124, 58, 237, 0.12);
-  color: #A78BFA;
-  border: 1px solid rgba(124, 58, 237, 0.25);
-}
-.badge-amber {
-  background: rgba(245, 158, 11, 0.12);
-  color: var(--accent);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--primary), #60A5FA);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Animated pulse dot */
-.pulse-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--primary);
-  position: relative;
-}
-.pulse-dot::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 2px solid var(--primary);
-  animation: pulse-ring 1.5s ease-out infinite;
-}
-@keyframes pulse-ring {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(1.8); opacity: 0; }
-}
-
-/* Map container */
-.map-container {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-/* Leaflet overrides */
-.leaflet-container {
-  background: #0D1120 !important;
-  font-family: 'Outfit', sans-serif !important;
-}
-.leaflet-control-zoom a {
-  background: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--bg-glass-border) !important;
-}
-.leaflet-popup-content-wrapper {
-  background: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--bg-glass-border) !important;
-  border-radius: var(--radius-md) !important;
-  box-shadow: var(--glow-green) !important;
-}
-.leaflet-popup-tip { background: var(--bg-card) !important; }
-
-/* Page fade-in animation */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.fade-in-up {
-  animation: fadeInUp 0.6s ease both;
-}
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
-
-/* Input */
-.input {
-  background: var(--bg-glass);
-  border: 1px solid var(--bg-glass-border);
-  color: var(--text-primary);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
+select {
   font-family: inherit;
-  font-size: 0.95rem;
-  width: 100%;
-  transition: var(--transition);
-  outline: none;
-}
-.input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
-}
-.input::placeholder { color: var(--text-muted); }
-
-/* Select */
-select.input {
-  cursor: pointer;
-  appearance: none;
 }
 
-/* Status colors */
-.status-online { color: var(--primary); }
-.status-busy { color: var(--accent); }
-.status-offline { color: var(--accent-red); }
+input {
+  font-family: inherit;
+}

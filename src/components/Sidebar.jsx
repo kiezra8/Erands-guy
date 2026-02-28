@@ -1,49 +1,57 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import '../App.css'
 
-const customerLinks = [
-    { icon: '🏠', label: 'Home', path: '/customer' },
-    { icon: '📦', label: 'Book Delivery', path: '/book' },
-    { icon: '🗺️', label: 'Track Order', path: '/track/eg-001' },
-    { icon: '📋', label: 'My Orders', path: '/customer#orders' },
-    { icon: '💳', label: 'Payments', path: '/customer#payments' },
-    { icon: '⚙️', label: 'Settings', path: '/customer#settings' },
+const navCustomer = [
+    { icon: '🏠', label: 'Overview', path: '/customer' },
+    { icon: '📦', label: 'Book delivery', path: '/book' },
+    { icon: '🗺️', label: 'Track order', path: '/track/eg-001' },
+    { icon: '📋', label: 'My orders', path: '#' },
+    { icon: '💳', label: 'Payments', path: '#' },
 ]
 
-const riderLinks = [
+const navRider = [
     { icon: '🏠', label: 'Dashboard', path: '/rider' },
-    { icon: '📍', label: 'Live Map', path: '/rider#map' },
-    { icon: '📋', label: 'My Deliveries', path: '/rider#deliveries' },
-    { icon: '💰', label: 'Earnings', path: '/rider#earnings' },
-    { icon: '⭐', label: 'Ratings', path: '/rider#ratings' },
-    { icon: '⚙️', label: 'Settings', path: '/rider#settings' },
+    { icon: '📍', label: 'Live map', path: '#' },
+    { icon: '📋', label: 'Deliveries', path: '#' },
+    { icon: '💰', label: 'Earnings', path: '#' },
+    { icon: '⭐', label: 'Ratings', path: '#' },
 ]
 
-export default function Sidebar({ role = 'customer', userName = 'John D.', userRole = 'Customer' }) {
+export default function Sidebar({ role = 'customer' }) {
+    const { currentUser, logout } = useAuth()
     const location = useLocation()
-    const links = role === 'rider' ? riderLinks : customerLinks
+    const navigate = useNavigate()
+    const links = role === 'rider' ? navRider : navCustomer
+
+    const displayName = currentUser?.displayName ||
+        (currentUser?.email ? currentUser.email.split('@')[0] : 'User')
+    const avatar = displayName.charAt(0).toUpperCase()
+
+    async function handleLogout() {
+        await logout()
+        navigate('/login')
+    }
 
     return (
-        <aside className="sidebar">
-            <div style={{ padding: '0 12px 20px' }}>
+        <aside className="app-sidebar">
+            <div className="sidebar-header">
                 <Link to="/" className="nav-logo" style={{ textDecoration: 'none' }}>
-                    <div className="nav-logo-icon" style={{ width: 36, height: 36, fontSize: '1rem' }}>⚡</div>
-                    <span className="nav-logo-text" style={{ fontSize: '1rem' }}>
-                        Erands <span>Guy</span>
-                    </span>
+                    <div className="nav-logo-mark" style={{ width: 30, height: 30, fontSize: '0.85rem' }}>E</div>
+                    <span className="nav-logo-text" style={{ fontSize: '1rem' }}>Erands<em>Guy</em></span>
                 </Link>
             </div>
 
-            <p className="sidebar-section-title">Navigation</p>
+            <p className="sidebar-section-label">Navigate</p>
             <nav className="sidebar-nav">
-                {links.map((link) => (
+                {links.map(link => (
                     <Link
-                        key={link.path}
+                        key={link.label}
                         to={link.path}
                         className={`sidebar-link ${location.pathname === link.path ? 'active' : ''}`}
                     >
-                        <span className="link-icon">{link.icon}</span>
+                        <span className="sl-icon">{link.icon}</span>
                         {link.label}
                     </Link>
                 ))}
@@ -51,16 +59,21 @@ export default function Sidebar({ role = 'customer', userName = 'John D.', userR
 
             <div style={{ flex: 1 }} />
 
-            <div style={{ padding: '0 0 12px' }}>
-                <div className="sidebar-profile">
-                    <div className="sidebar-avatar">
-                        {userName.charAt(0)}
-                    </div>
-                    <div className="sidebar-user-info">
-                        <p>{userName}</p>
-                        <p>{userRole}</p>
+            <div className="sidebar-footer">
+                <div className="sidebar-user">
+                    <div className="sidebar-avatar">{avatar}</div>
+                    <div className="sidebar-user-text">
+                        <p>{displayName}</p>
+                        <p style={{ textTransform: 'capitalize' }}>{role}</p>
                     </div>
                 </div>
+                <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
+                    onClick={handleLogout}
+                >
+                    Sign out
+                </button>
             </div>
         </aside>
     )
