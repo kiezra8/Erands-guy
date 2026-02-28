@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../firebase'
 import LiveMap from '../components/LiveMap'
 import '../App.css'
 
@@ -56,10 +58,40 @@ export default function BookDelivery() {
     const pickupPos = [userPos[0] + 0.008, userPos[1] - 0.008]
     const dropoffPos = [userPos[0] - 0.010, userPos[1] + 0.012]
 
-    const handleConfirm = () => {
-        // Generate a simple order ID and go straight to tracking
-        const orderId = 'EG-' + Math.floor(Math.random() * 9000 + 1000)
-        navigate(`/track/${orderId}`)
+    const [saving, setSaving] = useState(false)
+
+    const handleConfirm = async () => {
+        setSaving(true)
+        try {
+            // Generate unique order ID
+            const orderId = 'EG-' + Math.random().toString(36).substring(2, 7).toUpperCase()
+
+            // Save order to Firestore
+            await setDoc(doc(db, 'orders', orderId), {
+                orderId,
+                vehicle,
+                pickup: pickup || 'Nakasero Market',
+                dropoff: dropoff || 'Ntinda',
+                parcel,
+                phone: phone ? `+256 ${phone}` : null,
+                note: note || null,
+                status: 'searching',          // searching → assigned → pickup → transit → delivered
+                createdAt: serverTimestamp(),
+                // location fields — filled in real-time by the app
+                customerLocation: null,       // written by customer's GPS watch
+                riderLocation: null,       // written by rider's GPS watch
+            })
+
+            // Go straight to live tracking
+            navigate(`/track/${orderId}`)
+        } catch (err) {
+            console.error('Failed to save order:', err)
+            // Still navigate so user isn't stuck
+            const orderId = 'EG-' + Math.random().toString(36).substring(2, 7).toUpperCase()
+            navigate(`/track/${orderId}`)
+        } finally {
+            setSaving(false)
+        }
     }
 
     return (
@@ -262,10 +294,11 @@ export default function BookDelivery() {
                             <button
                                 className="btn btn-brand"
                                 id="confirm-btn"
-                                style={{ width: '100%', padding: '18px', fontSize: '1.05rem', background: '#06C167' }}
+                                style={{ width: '100%', padding: '18px', fontSize: '1.05rem', background: '#06C167', opacity: saving ? 0.7 : 1 }}
                                 onClick={handleConfirm}
+                                disabled={saving}
                             >
-                                ✅ Confirm — track my order
+                                {saving ? '⏳ Saving order...' : '✅ Confirm — track my order'}
                             </button>
                         )}
                     </div>

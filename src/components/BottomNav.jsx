@@ -43,7 +43,7 @@ const NAV_ITEMS = [
     {
         id: 'track',
         label: 'Tracking',
-        path: '/track/eg-001',
+        path: '/track',
         icon: (active) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <circle

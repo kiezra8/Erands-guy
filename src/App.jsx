@@ -62,14 +62,9 @@ function AppLayout() {
                         </RequireAuth>
                     }
                 />
-                <Route
-                    path="/book"
-                    element={<BookDelivery />}
-                />
-                <Route
-                    path="/track/:id"
-                    element={<TrackDelivery />}
-                />
+                <Route path="/book" element={<BookDelivery />} />
+                <Route path="/track" element={<TrackDelivery />} />
+                <Route path="/track/:id" element={<TrackDelivery />} />
 
                 {/* ── DRIVER ONLY ── must have role=driver in Firestore */}
                 <Route

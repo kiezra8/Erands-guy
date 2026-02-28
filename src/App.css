@@ -3166,3 +3166,128 @@ body {
         flex: 1;
     }
 }
+
+/* ═══════════════════════════════════════════
+   NO ACTIVE ORDER — TRACKING EMPTY STATE
+   ═══════════════════════════════════════════ */
+.no-order-shell {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px 100px;
+    /* extra bottom for BottomNav */
+    background: var(--bg);
+}
+
+.no-order-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-2xl);
+    padding: 48px 36px 40px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+}
+
+.no-order-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    display: block;
+    filter: grayscale(0.2);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.no-order-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-1);
+    margin: 0 0 12px;
+}
+
+.no-order-sub {
+    font-size: 0.9rem;
+    color: var(--text-2);
+    line-height: 1.6;
+    margin: 0 0 28px;
+}
+
+.no-order-tips {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+}
+
+.no-order-tip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.83rem;
+    color: var(--text-2);
+    font-weight: 500;
+}
+
+.no-order-tip span:first-child {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* ── Location permission banner (floats over map) ── */
+.location-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--r-xl);
+    backdrop-filter: blur(16px);
+    font-size: 0.84rem;
+    line-height: 1.4;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.location-banner span:first-child {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.location-banner strong {
+    display: block;
+    margin-bottom: 3px;
+    font-weight: 700;
+    color: var(--text-1);
+}
+
+.location-banner p {
+    color: var(--text-2);
+    margin: 0;
+}
+
+/* ── Searching-for-rider progress bar animation ── */
+@keyframes searching-bar {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(250%);
+    }
+}

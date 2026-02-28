@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import Sidebar from '../components/Sidebar'
+import React, { useState } from 'react'
 import LiveMap from '../components/LiveMap'
+import { useLocationSharing } from '../hooks/useLocationSharing'
 import '../App.css'
 
 const KAMPALA = [-0.3476, 32.5825]
-const CUSTOMER_POS = [KAMPALA[0] - 0.012, KAMPALA[1] + 0.018]
 
 const DONE = [
     { id: 'EG-091', icon: '🏍️', route: 'Nakasero → Ntinda', earn: 'UGX 4,400', time: '2 hrs ago' },
@@ -16,21 +15,18 @@ export default function RiderDashboard() {
     const [online, setOnline] = useState(true)
     const [hasReq, setHasReq] = useState(true)
     const [accepted, setAccepted] = useState(false)
-    const [riderPos, setRiderPos] = useState([KAMPALA[0] + 0.002, KAMPALA[1] + 0.003])
+    // The order ID the rider is currently delivering — enables GPS sharing
+    const [activeOrderId, setActiveOrderId] = useState(null)
 
-    // Animate toward customer on accept
-    useEffect(() => {
-        if (!accepted) return
-        const t = setInterval(() => {
-            setRiderPos(prev => {
-                const dlat = (CUSTOMER_POS[0] - prev[0]) * 0.035
-                const dlng = (CUSTOMER_POS[1] - prev[1]) * 0.035
-                if (Math.abs(dlat) < 0.00005) { clearInterval(t); return prev }
-                return [prev[0] + dlat, prev[1] + dlng]
-            })
-        }, 300)
-        return () => clearInterval(t)
-    }, [accepted])
+    // Real GPS: rider broadcasts riderLocation, sees customerLocation
+    const {
+        myPos: riderPos,
+        partnerPos: customerPos,
+        permissionState,
+    } = useLocationSharing(activeOrderId, 'riderLocation', 'customerLocation')
+
+    // Map center: real rider GPS → fallback to Kampala
+    const mapCenter = riderPos || KAMPALA
 
     return (
         <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -129,7 +125,12 @@ export default function RiderDashboard() {
                                     Decline
                                 </button>
                                 <button className="req-btn-accept" id="accept-btn"
-                                    onClick={() => { setAccepted(true); setHasReq(false) }}>
+                                    onClick={() => {
+                                        setAccepted(true)
+                                        setHasReq(false)
+                                        // In production, set to the real order ID from Firestore
+                                        setActiveOrderId('EG-DEMO')
+                                    }}>
                                     Accept
                                 </button>
                             </div>
@@ -203,13 +204,29 @@ export default function RiderDashboard() {
                 </div>
 
                 <LiveMap
-                    center={riderPos}
+                    center={mapCenter}
                     zoom={14}
-                    riderPosition={riderPos}
-                    customerPosition={accepted ? CUSTOMER_POS : undefined}
-                    showRoute={accepted}
+                    riderPosition={riderPos || undefined}
+                    customerPosition={accepted && customerPos ? customerPos : undefined}
+                    showRoute={!!(accepted && riderPos && customerPos)}
                     height="100%"
                 />
+
+                {/* GPS status badge */}
+                <div style={{ position: 'absolute', top: 64, right: 16, zIndex: 500 }}>
+                    <div style={{
+                        background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(12px)',
+                        border: `1px solid ${permissionState === 'granted' ? 'rgba(6,193,103,0.4)' : 'var(--border)'}`,
+                        borderRadius: 'var(--r-full)', padding: '8px 14px',
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        fontSize: '0.78rem', fontWeight: 700,
+                        color: permissionState === 'granted' ? 'var(--brand)' : 'var(--text-3)',
+                    }}>
+                        <div className={permissionState === 'granted' ? 'live-dot' : undefined}
+                            style={permissionState !== 'granted' ? { width: 8, height: 8, borderRadius: '50%', background: 'var(--text-3)' } : undefined} />
+                        {permissionState === 'granted' ? 'GPS live' : 'GPS off'}
+                    </div>
+                </div>
 
                 {/* Bottom overlay when active */}
                 {accepted && (

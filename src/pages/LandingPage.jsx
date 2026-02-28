@@ -290,59 +290,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* ── TRACKING SECTION ── */}
-            <TrackSection navigate={navigate} />
-
-            {/* ── CTA Band ── */}
-            <div className="cta-band">
-                <div style={{ maxWidth: 480, margin: '0 auto' }}>
-                    <h2>Ready to send something?</h2>
-                    <p>Thousands of Ugandans trust Erands Guy every day.</p>
-                    <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button className="btn btn-white" style={{ padding: '14px 32px', fontSize: '1rem' }} onClick={() => navigate('/book')}>
-                            Send a parcel
-                        </button>
-                        <button className="btn btn-outline" style={{ padding: '13px 28px', fontSize: '1rem', borderColor: 'rgba(0,0,0,0.25)', color: '#000' }} onClick={() => navigate('/rider')}>
-                            Become a rider
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Footer ── */}
-            <footer className="footer">
-                <div className="footer-inner">
-                    <div className="footer-top">
-                        <div className="footer-about">
-                            <div className="nav-logo" style={{ marginBottom: 0 }}>
-                                <div className="nav-logo-mark">E</div>
-                                <span className="nav-logo-text">Erands<em>Guy</em></span>
-                            </div>
-                            <p>Uganda's real-time delivery platform. Boda-bodas, courier cars, pickup trucks, big lorries.</p>
-                        </div>
-                        {[
-                            { title: 'Company', links: ['About us', 'Careers', 'Blog'] },
-                            { title: 'Services', links: ['Boda delivery', 'Car courier', 'Pickup truck', 'Big lorry'] },
-                            { title: 'Support', links: ['Help center', 'Contact', 'Safety'] },
-                        ].map(col => (
-                            <div key={col.title} className="footer-col">
-                                <div className="footer-col-title">{col.title}</div>
-                                <ul>
-                                    {col.links.map(l => <li key={l}><a href="#">{l}</a></li>)}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="footer-bottom">
-                        <span>🇺🇬 Made in Uganda · © 2026 Erands Guy Ltd</span>
-                        <div className="footer-links">
-                            <a href="#">Terms</a>
-                            <a href="#">Privacy</a>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-
             {/* ── Account Prompt Modal ── shown when tapping any order tile ── */}
             <AccountPromptModal
                 vehicle={selectedVehicle}
