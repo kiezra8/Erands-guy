@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LiveMap from '../components/LiveMap'
 import '../App.css'
@@ -8,18 +8,14 @@ const KAMPALA = [-0.3476, 32.5825]
 const PLACES = [
     'Nakasero Market', 'Owino Market', 'Garden City Mall', 'Acacia Mall', 'Ntinda',
     'Bukoto', 'Kololo', 'Muyenga', 'Kisaasi', 'Wandegeya', 'Makerere University',
-    'Entebbe Road', 'Jinja Road', 'Old Kampala', 'Katwe',
+    'Entebbe Road', 'Jinja Road', 'Old Kampala', 'Katwe', 'Kabalagala', 'Munyonyo',
 ]
 
-function estPrice(vehicle, km) {
-    const base = vehicle === 'boda' ? 3000 : 10000
-    const rate = vehicle === 'boda' ? 500 : 1500
-    return base + Math.round(km * rate)
-}
-
 const VEHICLE_OPTS = [
-    { id: 'boda', emoji: '🏍️', label: 'Boda Boda', sub: 'UGX 5.5K' },
-    { id: 'car', emoji: '🚗', label: 'Car', sub: 'UGX 16K' },
+    { id: 'boda', emoji: '🏍️', label: 'Boda Boda', sub: 'Small & fast' },
+    { id: 'car', emoji: '🚗', label: 'Courier Car', sub: 'Medium load' },
+    { id: 'pickup', emoji: '🛻', label: 'Pickup Truck', sub: 'Bulk load' },
+    { id: 'bigcar', emoji: '🚛', label: 'Big Truck', sub: 'Heavy cargo' },
 ]
 
 const PARCEL_TYPES = [
@@ -28,87 +24,92 @@ const PARCEL_TYPES = [
     { val: 'electronics', label: '💻 Electronics' },
     { val: 'clothing', label: '👕 Clothing' },
     { val: 'medicine', label: '💊 Medicine' },
+    { val: 'furniture', label: '🛋️ Furniture' },
     { val: 'other', label: '📦 Other' },
 ]
 
+// Try to get the user's real GPS position
+function useGeolocation() {
+    const [pos, setPos] = useState(null)
+    useEffect(() => {
+        if (!navigator.geolocation) return
+        navigator.geolocation.getCurrentPosition(
+            p => setPos([p.coords.latitude, p.coords.longitude]),
+            () => setPos(KAMPALA) // fallback to Kampala centre
+        )
+    }, [])
+    return pos || KAMPALA
+}
+
 export default function BookDelivery() {
     const navigate = useNavigate()
-    const [step, setStep] = useState(1)
+    const userPos = useGeolocation()
+
     const [vehicle, setVehicle] = useState('boda')
     const [pickup, setPickup] = useState('')
     const [dropoff, setDropoff] = useState('')
     const [parcel, setParcel] = useState('documents')
+    const [phone, setPhone] = useState('')
     const [note, setNote] = useState('')
-    const [pickupPos] = useState([KAMPALA[0] + 0.01, KAMPALA[1] - 0.01])
-    const [dropoffPos] = useState([KAMPALA[0] - 0.01, KAMPALA[1] + 0.015])
+    const [step, setStep] = useState(1) // 1=details, 2=confirm
 
-    const KM = 4.2
-    const price = estPrice(vehicle, KM)
-    const priceStr = `UGX ${price.toLocaleString()}`
+    const pickupPos = [userPos[0] + 0.008, userPos[1] - 0.008]
+    const dropoffPos = [userPos[0] - 0.010, userPos[1] + 0.012]
+
+    const handleConfirm = () => {
+        // Generate a simple order ID and go straight to tracking
+        const orderId = 'EG-' + Math.floor(Math.random() * 9000 + 1000)
+        navigate(`/track/${orderId}`)
+    }
 
     return (
-        <div className="book-shell">
-            {/* Map pane (left) */}
-            <div className="book-map-pane">
-                {/* tiny top-left back */}
-                <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 500 }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => navigate('/customer')} style={{ gap: 6 }}>
-                        ← Back
-                    </button>
+        <div className="book-fullpage">
+            {/* ── TOP BAR ── */}
+            <div className="book-topbar">
+                <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => step === 2 ? setStep(1) : navigate('/')}
+                    style={{ gap: 6 }}
+                >
+                    ← {step === 2 ? 'Edit' : 'Back'}
+                </button>
+                <div className="book-topbar-title">
+                    {step === 1 ? 'Route & parcel details' : 'Confirm order'}
                 </div>
-                <LiveMap
-                    center={KAMPALA}
-                    zoom={13}
-                    riderPosition={pickupPos}
-                    customerPosition={dropoffPos}
-                    showRoute
-                    height="100%"
-                />
-                {/* Map legend */}
-                <div style={{
-                    position: 'absolute', bottom: 20, left: 20,
-                    display: 'flex', gap: 8, zIndex: 200
-                }}>
-                    <div style={{
-                        background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(12px)',
-                        border: '1px solid var(--border-strong)', borderRadius: 'var(--r-xl)',
-                        padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', fontWeight: 700
-                    }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand)' }} />
-                        Pickup point
-                    </div>
-                    <div style={{
-                        background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(12px)',
-                        border: '1px solid var(--border-strong)', borderRadius: 'var(--r-xl)',
-                        padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', fontWeight: 700
-                    }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--red)' }} />
-                        Dropoff
-                    </div>
+                {/* Step indicator */}
+                <div className="step-dots" style={{ marginRight: 4 }}>
+                    {[1, 2].map(s => (
+                        <div key={s} className={`step-dot ${step >= s ? 'active' : ''}`} />
+                    ))}
                 </div>
             </div>
 
-            {/* Form pane (right) */}
-            <div className="book-form-pane">
-                <div className="book-form-header">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <h1>Book delivery</h1>
-                        {/* Step dots */}
-                        <div className="step-dots">
-                            {[1, 2].map(s => (
-                                <div key={s} className={`step-dot ${step === s ? 'active' : (step > s ? 'active' : '')}`} />
-                            ))}
-                        </div>
+            {/* ── CONTENT ── */}
+            <div className="book-body">
+                {/* LEFT — Map (full height) */}
+                <div className="book-map-col">
+                    <LiveMap
+                        center={userPos}
+                        zoom={13}
+                        riderPosition={pickupPos}
+                        customerPosition={dropoffPos}
+                        showRoute
+                        height="100%"
+                    />
+                    {/* GPS live badge */}
+                    <div className="book-gps-badge">
+                        <div className="live-dot" />
+                        <span>GPS active</span>
                     </div>
-                    <p>{step === 1 ? 'Enter route & parcel details' : 'Review and confirm your order'}</p>
                 </div>
 
-                <div className="book-form-body">
+                {/* RIGHT — Form */}
+                <div className="book-form-col">
                     {step === 1 ? (
                         <>
-                            {/* Vehicle selector */}
-                            <div className="form-group">
-                                <label className="form-label">Vehicle</label>
+                            {/* Vehicle chips */}
+                            <div className="bform-section">
+                                <div className="bform-label">Vehicle type</div>
                                 <div className="vehicle-chips">
                                     {VEHICLE_OPTS.map(v => (
                                         <button
@@ -126,9 +127,9 @@ export default function BookDelivery() {
                                 </div>
                             </div>
 
-                            {/* Route stack */}
-                            <div className="form-group">
-                                <label className="form-label">Route</label>
+                            {/* Route */}
+                            <div className="bform-section">
+                                <div className="bform-label">Route</div>
                                 <div className="route-stack">
                                     <div className="route-input-row">
                                         <div className="route-dot pickup" />
@@ -160,104 +161,114 @@ export default function BookDelivery() {
                             </div>
 
                             {/* Parcel type */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="parcel-type">Parcel type</label>
-                                <select
-                                    className="input"
-                                    id="parcel-type"
-                                    value={parcel}
-                                    onChange={e => setParcel(e.target.value)}
-                                    style={{ appearance: 'none', cursor: 'pointer' }}
-                                >
+                            <div className="bform-section">
+                                <div className="bform-label">What are you sending?</div>
+                                <div className="parcel-chips">
                                     {PARCEL_TYPES.map(p => (
-                                        <option key={p.val} value={p.val}>{p.label}</option>
+                                        <button
+                                            key={p.val}
+                                            type="button"
+                                            className={`parcel-chip ${parcel === p.val ? 'selected' : ''}`}
+                                            onClick={() => setParcel(p.val)}
+                                        >
+                                            {p.label}
+                                        </button>
                                     ))}
-                                </select>
+                                </div>
                             </div>
 
-                            {/* Note */}
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="note-input">Instructions (optional)</label>
+                            {/* Phone number */}
+                            <div className="bform-section">
+                                <div className="bform-label">Your phone number</div>
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                    <span style={{
+                                        padding: '0 14px', height: 48, display: 'flex', alignItems: 'center',
+                                        background: 'var(--surface)', border: '1px solid var(--border)',
+                                        borderRadius: 'var(--r-lg)', fontSize: '0.9rem', fontWeight: 700,
+                                        color: 'var(--text-2)', flexShrink: 0
+                                    }}>🇺🇬 +256</span>
+                                    <input
+                                        className="input"
+                                        id="phone-input"
+                                        type="tel"
+                                        placeholder="7XX XXX XXX"
+                                        value={phone}
+                                        onChange={e => setPhone(e.target.value)}
+                                        style={{ flex: 1 }}
+                                    />
+                                </div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 6 }}>
+                                    We'll call or SMS you when your rider is assigned.
+                                </p>
+                            </div>
+
+                            <div className="bform-section">
+                                <div className="bform-label">Special instructions <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></div>
                                 <input
                                     className="input"
                                     id="note-input"
-                                    placeholder="E.g. Handle with care, call on arrival"
+                                    placeholder="e.g. Handle with care, call on arrival"
                                     value={note}
                                     onChange={e => setNote(e.target.value)}
                                 />
                             </div>
                         </>
                     ) : (
-                        /* Step 2 — confirm */
-                        <div>
-                            {[
-                                { label: 'Vehicle', val: vehicle === 'boda' ? '🏍️ Boda Boda' : '🚗 Courier Car' },
-                                { label: 'Pickup', val: pickup || 'Nakasero Market' },
-                                { label: 'Dropoff', val: dropoff || 'Ntinda Village' },
-                                { label: 'Parcel', val: parcel },
-                                { label: 'Distance', val: `${KM} km` },
-                                { label: 'Payment', val: 'MTN Mobile Money' },
-                            ].map(row => (
-                                <div className="confirm-row" key={row.label}>
-                                    <span className="cr-label">{row.label}</span>
-                                    <span className="cr-val">{row.val}</span>
+                        /* Step 2 — Confirm */
+                        <>
+                            <div className="bform-section">
+                                <div className="bform-label">Order summary</div>
+                                <div className="confirm-card">
+                                    {[
+                                        { label: 'Vehicle', val: VEHICLE_OPTS.find(v => v.id === vehicle)?.emoji + ' ' + VEHICLE_OPTS.find(v => v.id === vehicle)?.label },
+                                        { label: 'Pickup', val: pickup || 'Nakasero Market' },
+                                        { label: 'Dropoff', val: dropoff || 'Ntinda' },
+                                        { label: 'Phone', val: phone ? `+256 ${phone}` : 'Not provided' },
+                                        { label: 'Parcel', val: PARCEL_TYPES.find(p => p.val === parcel)?.label },
+                                        { label: 'Payment', val: 'MTN / Airtel Mobile Money' },
+                                    ].map(row => (
+                                        <div className="confirm-row" key={row.label}>
+                                            <span className="cr-label">{row.label}</span>
+                                            <span className="cr-val">{row.val}</span>
+                                        </div>
+                                    ))}
+                                    {note && (
+                                        <div className="confirm-row">
+                                            <span className="cr-label">Note</span>
+                                            <span className="cr-val">{note}</span>
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
-
-                            <div style={{
-                                background: 'var(--brand-dim)', border: '1px solid rgba(6,193,103,0.25)',
-                                borderRadius: 'var(--r-lg)', padding: '16px 20px', marginTop: 20,
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                            }}>
-                                <span style={{ fontSize: '0.85rem', color: 'var(--text-2)', fontWeight: 600 }}>Total to pay</span>
-                                <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--brand)' }}>{priceStr}</span>
                             </div>
-                        </div>
+
+                            <div className="bform-info">
+                                🏍️ A rider will be assigned within <strong>60 seconds</strong> of confirmation. You'll track them live on the map.
+                            </div>
+                        </>
                     )}
-                </div>
 
-                {/* Estimate bar always visible */}
-                <div style={{ padding: '0 24px' }}>
-                    <div className="estimate-card">
-                        <div className="estimate-left">
-                            <div className="est-label">Estimate</div>
-                            <div className="est-dist">{KM} km · {vehicle === 'boda' ? 'Boda Boda' : 'Car'}</div>
-                        </div>
-                        <div className="estimate-price">{priceStr}</div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="book-form-footer">
-                    {step === 1 ? (
-                        <button
-                            className="btn btn-brand"
-                            id="continue-btn"
-                            style={{ width: '100%', padding: '16px', fontSize: '1rem' }}
-                            onClick={() => setStep(2)}
-                        >
-                            Continue →
-                        </button>
-                    ) : (
-                        <div style={{ display: 'flex', gap: 10 }}>
+                    {/* CTA button — always visible at bottom */}
+                    <div className="book-form-cta">
+                        {step === 1 ? (
                             <button
-                                className="btn btn-ghost"
-                                id="back-btn"
-                                style={{ flex: 1, padding: '14px', justifyContent: 'center' }}
-                                onClick={() => setStep(1)}
+                                className="btn btn-brand"
+                                id="continue-btn"
+                                style={{ width: '100%', padding: '18px', fontSize: '1.05rem' }}
+                                onClick={() => setStep(2)}
                             >
-                                ← Edit
+                                Continue →
                             </button>
+                        ) : (
                             <button
                                 className="btn btn-brand"
                                 id="confirm-btn"
-                                style={{ flex: 2, padding: '14px', justifyContent: 'center', fontSize: '1rem' }}
-                                onClick={() => navigate('/track/eg-new')}
+                                style={{ width: '100%', padding: '18px', fontSize: '1.05rem', background: '#06C167' }}
+                                onClick={handleConfirm}
                             >
-                                Confirm & pay
+                                ✅ Confirm — track my order
                             </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

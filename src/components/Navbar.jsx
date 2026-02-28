@@ -21,11 +21,11 @@ export default function Navbar() {
 
 
             <div className="nav-right">
-                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/rider')}>
-                    Rider Login
+                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login')}>
+                    Login / Sign up
                 </button>
-                <button className="btn btn-brand btn-sm" onClick={() => navigate('/customer')}>
-                    Get started
+                <button className="btn btn-brand btn-sm" onClick={() => navigate('/book')}>
+                    Order now
                 </button>
             </div>
         </nav>

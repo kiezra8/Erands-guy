@@ -10,7 +10,7 @@ const KAMPALA = [-0.3476, 32.5825]
 const ORDER_TYPES = [
     {
         id: 'boda',
-        emoji: '🏍️',
+        photo: 'https://st2.depositphotos.com/22259408/43917/i/450/depositphotos_439176752-stock-photo-rider-on-bike-with-black.jpg',
         name: 'Boda Boda',
         tagline: 'Small & Fast',
         desc: "Fastest through Kampala traffic. Perfect for documents, small parcels & food.",
@@ -20,7 +20,7 @@ const ORDER_TYPES = [
     },
     {
         id: 'car',
-        emoji: '🚗',
+        photo: 'https://www.shutterstock.com/image-photo/delivery-driver-picking-food-order-260nw-2681385541.jpg',
         name: 'Courier Car',
         tagline: 'Medium Load',
         desc: 'Spacious sedan for mid-size deliveries — electronics, clothing hauls & multi-stop routes.',
@@ -30,7 +30,7 @@ const ORDER_TYPES = [
     },
     {
         id: 'pickup',
-        emoji: '🛻',
+        photo: 'https://www.shutterstock.com/image-photo/prompt-a-photorealistic-stock-photo-260nw-2656936933.jpg',
         name: 'Pickup Truck',
         tagline: 'Bulk Load',
         desc: 'Open-bed truck for furniture, appliances & market goods.',
@@ -40,7 +40,7 @@ const ORDER_TYPES = [
     },
     {
         id: 'bigcar',
-        emoji: '🚛',
+        photo: 'https://thumbs.dreamstime.com/b/large-white-truck-parked-front-warehouse-daylight-hours-outside-has-big-trailer-there-grey-clouds-sky-doors-422981292.jpg',
         name: 'Big Truck',
         tagline: 'Heavy Cargo',
         desc: 'Large lorry for full-scale moves, factory goods or construction materials.',
@@ -248,11 +248,16 @@ export default function LandingPage() {
                                 onClick={() => handleOrderTap(v)}
                                 style={{ '--tile-color': v.color }}
                             >
-                                <div className="order-tile-top">
-                                    <div className="order-tile-emoji-wrap" style={{ background: `${v.color}18`, border: `1px solid ${v.color}33` }}>
-                                        <span className="order-tile-emoji">{v.emoji}</span>
-                                    </div>
-                                    <div className="order-tile-badge" style={{ color: v.color, background: `${v.color}15`, border: `1px solid ${v.color}30` }}>
+                                {/* Photo banner */}
+                                <div
+                                    className="order-tile-photo"
+                                    style={{
+                                        backgroundImage: `url('${v.photo}')`,
+                                        '--tile-color': v.color,
+                                    }}
+                                >
+                                    <div className="order-tile-photo-overlay" style={{ background: `linear-gradient(to top, ${v.color}cc 0%, transparent 60%)` }} />
+                                    <div className="order-tile-badge" style={{ color: '#fff', background: `${v.color}cc`, border: 'none' }}>
                                         {v.tagline}
                                     </div>
                                 </div>
