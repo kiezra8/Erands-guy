@@ -20,7 +20,8 @@ export default function Navbar() {
             </Link>
 
             <ul className="nav-links">
-                <li><a href="#vehicles">Vehicles</a></li>
+                <li><a href="#order">Order</a></li>
+                <li><a href="#track">Track</a></li>
                 <li><a href="#how">How it works</a></li>
                 <li><a href="#features">Features</a></li>
             </ul>
